@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tasky — Do More, Worry Less</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── CSS Variables ─────────────────────────── */
+    :root {
+      --bg:        #0e0f13;
+      --surface:   #16181f;
+      --card:      #1c1e28;
+      --border:    #2a2d3a;
+      --border-hi: #3d4157;
+      --text:      #e8e9ef;
+      --muted:     #6b6f87;
+      --accent:    #f0a868;
+      --accent-hi: #f7c48a;
+      --accent-glow: rgba(240,168,104,0.18);
+      --done-bg:   #1a1e2a;
+      --danger:    #e05e72;
+      --danger-bg: rgba(224,94,114,0.10);
+      --green:     #4ade80;
+      --green-bg:  rgba(74,222,128,0.10);
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --shadow:    0 4px 24px rgba(0,0,0,0.4);
+      --shadow-card: 0 2px 12px rgba(0,0,0,0.35);
+    }
+
+    /* ─── Reset & Base ──────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 16px 80px;
+      /* Subtle grid texture */
+      background-image:
+        radial-gradient(ellipse 60% 40% at 50% -10%, rgba(240,168,104,0.07) 0%, transparent 70%),
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: auto, 48px 48px, 48px 48px;
+    }
+
+    /* ─── App Shell ─────────────────────────────── */
+    .app {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* ─── Header ────────────────────────────────── */
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--accent), #e07840);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+
+    .logo-icon svg { width: 22px; height: 22px; stroke: #fff; }
+
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: clamp(1.7rem, 5vw, 2.2rem);
+      letter-spacing: -0.03em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    h1 em {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 500;
+      padding-left: 58px;
+    }
+
+    /* ─── Stats Bar ─────────────────────────────── */
+    .stats {
+      display: flex;
+      gap: 12px;
+    }
+
+    .stat {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: border-color 0.2s;
+    }
+
+    .stat:hover { border-color: var(--border-hi); }
+
+    .stat-number {
+      font-family: 'Fraunces', serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .stat:nth-child(2) .stat-number { color: var(--green); }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+    }
+
+    /* ─── Input Section ─────────────────────────── */
+    .input-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .input-section:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .input-icon {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+    }
+
+    .input-icon svg { width: 18px; height: 18px; }
+
+    #addTask {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.97rem;
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    #addTask::placeholder { color: var(--muted); }
+
+    #submit {
+      background: var(--accent);
+      color: #0e0f13;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 9px 22px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.2s, transform 0.12s, box-shadow 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    #submit:hover {
+      background: var(--accent-hi);
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+
+    #submit:active { transform: scale(0.95); }
+
+    /* ─── Section Label ─────────────────────────── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-style: italic;
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ─── Task List ─────────────────────────────── */
+    #todoList, #doneList {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ─── Task Card ─────────────────────────────── */
+    .task-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      animation: slideIn 0.28s cubic-bezier(0.34,1.4,0.64,1) both;
+    }
+
+    .task-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-hi);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(14px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)  scale(1); }
+    }
+
+    @keyframes slideOut {
+      from { opacity: 1; transform: translateY(0) scale(1); max-height: 80px; }
+      to   { opacity: 0; transform: translateY(-8px) scale(0.96); max-height: 0; padding: 0; margin: 0; }
+    }
+
+    .task-card.removing {
+      animation: slideOut 0.25s ease forwards;
+      pointer-events: none;
+    }
+
+    /* Complete circle button */
+    .btn-complete {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--border-hi);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      color: transparent;
+    }
+
+    .btn-complete svg { width: 14px; height: 14px; stroke: currentColor; }
+
+    .btn-complete:hover {
+      border-color: var(--green);
+      background: var(--green-bg);
+      color: var(--green);
+      transform: scale(1.12);
+    }
+
+    /* Task text */
+    .task-text {
+      flex: 1;
+      font-size: 0.95rem;
+      color: var(--text);
+      font-weight: 400;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    /* Delete button */
+    .btn-delete {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--muted);
+      transition: color 0.2s, background 0.2s, transform 0.15s;
+      opacity: 0;
+    }
+
+    .task-card:hover .btn-delete { opacity: 1; }
+    .btn-delete svg { width: 15px; height: 15px; stroke: currentColor; }
+
+    .btn-delete:hover {
+      color: var(--danger);
+      background: var(--danger-bg);
+      transform: scale(1.1);
+    }
+
+    /* ─── Done Section ──────────────────────────── */
+    #doneList .task-card {
+      background: var(--done-bg);
+      opacity: 0.75;
+      border-style: dashed;
+    }
+
+    #doneList .task-text {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    #doneList .btn-complete {
+      border-color: var(--green);
+      background: var(--green-bg);
+      color: var(--green);
+      cursor: default;
+    }
+
+    /* ─── Empty State ───────────────────────────── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 36px 20px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      stroke: var(--border-hi);
+    }
+
+    .empty-state p {
+      font-size: 0.88rem;
+      font-weight: 400;
+    }
+
+    .empty-state strong {
+      display: block;
+      font-family: 'Fraunces', serif;
+      font-size: 1rem;
+      font-style: italic;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ─── Live Clock ────────────────────────────── */
+    .clock-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .clock-date {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .clock-day {
+      font-family: 'Fraunces', serif;
+      font-size: 0.82rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .clock-full-date {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+
+    .clock-divider {
+      width: 1px;
+      height: 32px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .clock-time-block {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .clock-time {
+      font-family: 'Fraunces', serif;
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .clock-seconds {
+      font-family: 'Fraunces', serif;
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .clock-ampm {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      align-self: center;
+    }
+
+    /* ─── Task Timestamps ───────────────────────── */
+    .task-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .task-ts {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.70rem;
+      color: var(--muted);
+      font-weight: 400;
+      white-space: nowrap;
+    }
+
+    .task-ts svg {
+      width: 11px;
+      height: 11px;
+      stroke: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .task-ts-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--border-hi);
+      font-weight: 600;
+    }
+
+    .task-ts.done-ts .task-ts-label { color: var(--green); opacity: 0.8; }
+    .task-ts.done-ts svg { stroke: var(--green); opacity: 0.7; }
+
+    /* ─── Footer ────────────────────────────────── */
+    footer {
+      margin-top: auto;
+      padding-top: 32px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    footer span { color: var(--accent); }
+
+    /* ─── Responsive ────────────────────────────── */
+    @media (max-width: 480px) {
+      body { padding: 28px 12px 60px; }
+      .input-section { padding: 14px; }
+      #submit { padding: 9px 14px; font-size: 0.82rem; }
+      .stat-number { font-size: 1.5rem; }
+      .btn-delete { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <header>
+      <div class="header-row">
+        <div class="logo-icon">
+          <!-- Checkmark icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h1>Task<em>y</em></h1>
+      </div>
+      <p class="subtitle">Do more, worry less</p>
+    </header>
+
+    <!-- Live Clock -->
+    <div class="clock-bar">
+      <div class="clock-date">
+        <span class="clock-day" id="clockDay"></span>
+        <span class="clock-full-date" id="clockFullDate"></span>
+      </div>
+      <div class="clock-divider"></div>
+      <div class="clock-time-block">
+        <span class="clock-time" id="clockTime"></span>
+        <span class="clock-seconds" id="clockSec"></span>
+        <span class="clock-ampm" id="clockAmpm"></span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-number" id="pendingCount">0</span>
+        <span class="stat-label">Pending</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number" id="doneCount">0</span>
+        <span class="stat-label">Completed</span>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-section">
+      <div class="input-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </div>
+      <input id="addTask" type="text" placeholder="What needs to get done?" autocomplete="off" />
+      <button id="submit">Add Task</button>
+    </div>
+
+    <!-- Pending Tasks -->
+    <div class="section-label">
+      <span class="section-title">Pending</span>
+      <div class="section-line"></div>
+    </div>
+
+    <ul id="todoList"></ul>
+
+    <!-- Completed Tasks -->
+    <div class="section-label">
+      <span class="section-title">Completed</span>
+      <div class="section-line"></div>
+    </div>
+
+    <ul id="doneList"></ul>
+
+  </div>
+
+  <footer><span>Be Discipline</span></footer>
+
+  <script>
+    // ─── SVG icon helpers ───────────────────────────────────
+    const svgCheck = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+    const svgTrash = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+    const svgClock = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>`;
+    const svgCalendar = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+
+    // ─── State ──────────────────────────────────────────────
+    let tasks = [];   // { id, text, done, createdAt, completedAt }
+    let nextId = 0;
+
+    const todoList    = document.getElementById('todoList');
+    const doneList    = document.getElementById('doneList');
+    const addInput    = document.getElementById('addTask');
+    const submitBtn   = document.getElementById('submit');
+    const pendingCnt  = document.getElementById('pendingCount');
+    const doneCnt     = document.getElementById('doneCount');
+
+    // ─── Live Clock ─────────────────────────────────────────
+    const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    function updateClock() {
+      const now = new Date();
+      let h = now.getHours();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      const m  = String(now.getMinutes()).padStart(2, '0');
+      const s  = String(now.getSeconds()).padStart(2, '0');
+
+      document.getElementById('clockDay').textContent      = DAYS[now.getDay()];
+      document.getElementById('clockFullDate').textContent = `${MONTHS[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+      document.getElementById('clockTime').textContent     = `${h}:${m}`;
+      document.getElementById('clockSec').textContent      = `:${s}`;
+      document.getElementById('clockAmpm').textContent     = ampm;
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ─── Timestamp formatter ─────────────────────────────────
+    function formatStamp(date) {
+      const d   = new Date(date);
+      const day = String(d.getDate()).padStart(2, '0');
+      const mon = MONTHS[d.getMonth()];
+      const yr  = d.getFullYear();
+      let h     = d.getHours();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${mon} ${day}, ${yr} · ${h}:${min} ${ampm}`;
+    }
+
+    // ─── Render ─────────────────────────────────────────────
+    function render() {
+      const pending   = tasks.filter(t => !t.done);
+      const completed = tasks.filter(t => t.done);
+
+      pendingCnt.textContent = pending.length;
+      doneCnt.textContent    = completed.length;
+
+      todoList.innerHTML = '';
+      doneList.innerHTML = '';
+
+      if (pending.length === 0) {
+        todoList.innerHTML = emptyHTML('No pending tasks — you\'re all caught up!', 'Time to relax or add something new.');
+      } else {
+        pending.forEach(t => todoList.appendChild(createCard(t)));
+      }
+
+      if (completed.length === 0) {
+        doneList.innerHTML = emptyHTML('Nothing completed yet.', 'Finish a task to see it here.');
+      } else {
+        completed.forEach(t => doneList.appendChild(createCard(t)));
+      }
+    }
+
+    function emptyHTML(title, sub) {
+      return `<div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="4"/>
+          <path d="M9 12h6M12 9v6"/>
+        </svg>
+        <div><strong>${title}</strong><p>${sub}</p></div>
+      </div>`;
+    }
+
+    function createCard(task) {
+      const li = document.createElement('li');
+      li.className = 'task-card';
+      li.dataset.id = task.id;
+
+      const completedRow = task.done && task.completedAt
+        ? `<span class="task-ts done-ts">${svgClock}<span class="task-ts-label">Done</span>${formatStamp(task.completedAt)}</span>`
+        : '';
+
+      li.innerHTML = `
+        <button class="btn-complete" title="${task.done ? 'Completed' : 'Mark complete'}" ${task.done ? 'disabled' : ''}>${svgCheck}</button>
+        <div class="task-body">
+          <span class="task-text">${escapeHTML(task.text)}</span>
+          <div class="task-meta">
+            <span class="task-ts">${svgCalendar}<span class="task-ts-label">Added</span>${formatStamp(task.createdAt)}</span>
+            ${completedRow}
+          </div>
+        </div>
+        <button class="btn-delete" title="Delete task">${svgTrash}</button>
+      `;
+
+      li.querySelector('.btn-complete').addEventListener('click', () => completeTask(task.id));
+      li.querySelector('.btn-delete').addEventListener('click', () => deleteTask(task.id, li));
+
+      return li;
+    }
+
+    // ─── Actions ────────────────────────────────────────────
+    function addTask() {
+      const val = addInput.value.trim();
+      if (!val) return;
+      tasks.push({ id: nextId++, text: val, done: false, createdAt: new Date(), completedAt: null });
+      addInput.value = '';
+      render();
+    }
+
+    function completeTask(id) {
+      const t = tasks.find(t => t.id === id);
+      if (t) { t.done = true; t.completedAt = new Date(); render(); }
+    }
+
+    function deleteTask(id, el) {
+      el.classList.add('removing');
+      el.addEventListener('animationend', () => {
+        tasks = tasks.filter(t => t.id !== id);
+        render();
+      }, { once: true });
+    }
+
+    // ─── Utility ────────────────────────────────────────────
+    function escapeHTML(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ─── Event Listeners ────────────────────────────────────
+    submitBtn.addEventListener('click', addTask);
+    addInput.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
